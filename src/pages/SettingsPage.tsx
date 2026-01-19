@@ -364,6 +364,12 @@ export function SettingsPage() {
   const loadSlackChannels = async () => {
     setLoadingChannels(true);
     try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        throw new Error('Please sign in to manage Slack channels');
+      }
+
       const { data, error } = await supabase.functions.invoke('slack-channels', {
         method: 'GET',
       });
@@ -371,6 +377,10 @@ export function SettingsPage() {
       if (error) {
         console.error('API Error:', error);
         throw new Error(error.message || 'Failed to load channels');
+      }
+
+      if (data.error) {
+        throw new Error(data.error);
       }
 
       setSlackChannels(data.channels || []);
