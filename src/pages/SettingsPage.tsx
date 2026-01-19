@@ -364,22 +364,13 @@ export function SettingsPage() {
   const loadSlackChannels = async () => {
     setLoadingChannels(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/slack-channels`;
-      const response = await fetch(apiUrl, {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
+      const { data, error } = await supabase.functions.invoke('slack-channels', {
+        method: 'GET',
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error('API Error:', data);
-        throw new Error(data.error || 'Failed to load channels');
+      if (error) {
+        console.error('API Error:', error);
+        throw new Error(error.message || 'Failed to load channels');
       }
 
       setSlackChannels(data.channels || []);
@@ -396,20 +387,15 @@ export function SettingsPage() {
   const saveListeningChannels = async () => {
     setSaving(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/slack-channels`;
-      const response = await fetch(apiUrl, {
+      const { data, error } = await supabase.functions.invoke('slack-channels', {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ channels: selectedChannels }),
+        body: { channels: selectedChannels },
       });
 
-      if (!response.ok) throw new Error('Failed to save channels');
+      if (error) {
+        console.error('API Error:', error);
+        throw new Error(error.message || 'Failed to save channels');
+      }
 
       setProfileData({
         ...profileData,
