@@ -79,8 +79,12 @@ Deno.serve(async (req: Request) => {
       const channelsData = await channelsResponse.json();
 
       if (!channelsData.ok) {
+        console.error("Slack API error:", channelsData);
         return new Response(
-          JSON.stringify({ error: "Failed to fetch channels" }),
+          JSON.stringify({
+            error: channelsData.error || "Failed to fetch channels",
+            details: channelsData
+          }),
           {
             status: 400,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -88,9 +92,13 @@ Deno.serve(async (req: Request) => {
         );
       }
 
+      const channels = (channelsData.channels || []).filter((ch: any) =>
+        !ch.is_archived && (ch.is_member || ch.is_private)
+      );
+
       return new Response(
         JSON.stringify({
-          channels: channelsData.channels,
+          channels: channels,
           listening_channels: JSON.parse(profile.slack_listening_channels || "[]"),
         }),
         {

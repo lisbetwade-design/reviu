@@ -709,24 +709,26 @@ export function SettingsPage() {
                             <div className="space-y-4">
                               <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-xl">
                                 {slackChannels.map((channel) => (
-                                  <label
+                                  <div
                                     key={channel.id}
+                                    onClick={() => toggleChannel(channel.id)}
                                     className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
                                   >
                                     <input
                                       type="checkbox"
                                       checked={selectedChannels.includes(channel.id)}
                                       onChange={() => toggleChannel(channel.id)}
-                                      className="w-4 h-4 text-[#2563EB] rounded focus:ring-2 focus:ring-[#2563EB]"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="w-4 h-4 text-[#2563EB] rounded focus:ring-2 focus:ring-[#2563EB] cursor-pointer"
                                     />
-                                    <Hash size={16} className="text-gray-400" />
-                                    <span className="flex-1 text-sm font-medium text-gray-900">
+                                    <Hash size={16} className="text-gray-400 pointer-events-none" />
+                                    <span className="flex-1 text-sm font-medium text-gray-900 pointer-events-none">
                                       {channel.name}
                                       {channel.is_private && (
                                         <span className="ml-2 text-xs text-gray-500">(private)</span>
                                       )}
                                     </span>
-                                  </label>
+                                  </div>
                                 ))}
                               </div>
 
