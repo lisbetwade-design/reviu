@@ -97,20 +97,25 @@ export function InboxPage({ onNavigateToDesign, onNavigateToProject }: InboxPage
 
       if (error) throw error;
 
-      const mappedData = (data || []).map((comment: any) => ({
-        id: comment.id,
-        design_id: comment.design_id,
-        stakeholder_name: comment.author_name,
-        stakeholder_email: comment.author_email,
-        stakeholder_role: comment.author_email?.includes('figma') ? 'designer' : 'client',
-        content: comment.content,
-        rating: comment.rating,
-        source_type: comment.author_email?.includes('figma') ? 'figma' : 'web',
-        is_processed: comment.status !== 'open',
-        created_at: comment.created_at,
-        viewed_at: comment.viewed_at,
-        design: comment.design,
-      }));
+      const mappedData = (data || []).map((comment: any) => {
+        const isSlack = comment.author_email?.includes('slack.com');
+        const isFigma = comment.author_email?.includes('figma');
+
+        return {
+          id: comment.id,
+          design_id: comment.design_id,
+          stakeholder_name: comment.author_name,
+          stakeholder_email: comment.author_email,
+          stakeholder_role: isSlack ? 'Slack User' : (isFigma ? 'designer' : 'client'),
+          content: comment.content,
+          rating: comment.rating,
+          source_type: isSlack ? 'slack' : (isFigma ? 'figma' : 'web'),
+          is_processed: comment.status !== 'open',
+          created_at: comment.created_at,
+          viewed_at: comment.viewed_at,
+          design: comment.design,
+        };
+      });
 
       setFeedbackItems(mappedData);
 

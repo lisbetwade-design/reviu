@@ -53,7 +53,7 @@ Deno.serve(async (req: Request) => {
           if (!profile.slack_listening_channels) continue;
 
           const listeningChannels = JSON.parse(profile.slack_listening_channels || "[]");
-          
+
           if (listeningChannels.includes(event.channel)) {
             const { data: projects } = await supabaseClient
               .from("projects")
@@ -63,14 +63,39 @@ Deno.serve(async (req: Request) => {
               .maybeSingle();
 
             if (projects) {
-              await supabaseClient.from("board_items").insert({
-                project_id: projects.id,
-                title: `Feedback from Slack: ${event.text.substring(0, 50)}${event.text.length > 50 ? "..." : ""}`,
-                description: event.text,
-                status: "open",
-                priority: "medium",
-                stakeholder_role: "Slack User",
-              });
+              const { data: slackDesign } = await supabaseClient
+                .from("designs")
+                .select("id")
+                .eq("project_id", projects.id)
+                .eq("name", "Slack Inbox")
+                .maybeSingle();
+
+              let designId = slackDesign?.id;
+
+              if (!designId) {
+                const { data: newDesign } = await supabaseClient
+                  .from("designs")
+                  .insert({
+                    project_id: projects.id,
+                    name: "Slack Inbox",
+                    source_type: "slack",
+                    source_url: null,
+                  })
+                  .select("id")
+                  .single();
+
+                designId = newDesign?.id;
+              }
+
+              if (designId) {
+                await supabaseClient.from("comments").insert({
+                  design_id: designId,
+                  author_name: event.user || "Slack User",
+                  author_email: `slack-${event.user}@slack.com`,
+                  content: event.text,
+                  status: "open",
+                });
+              }
             }
           }
         }
