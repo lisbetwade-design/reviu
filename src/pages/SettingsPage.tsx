@@ -375,15 +375,19 @@ export function SettingsPage() {
         },
       });
 
-      if (!response.ok) throw new Error('Failed to load channels');
-
       const data = await response.json();
+
+      if (!response.ok) {
+        console.error('API Error:', data);
+        throw new Error(data.error || 'Failed to load channels');
+      }
+
       setSlackChannels(data.channels || []);
       setSelectedChannels(data.listening_channels || []);
       setShowChannelSelector(true);
     } catch (error) {
       console.error('Error loading channels:', error);
-      alert('Failed to load Slack channels. Please try again.');
+      alert(`Failed to load Slack channels: ${error.message || 'Please try again.'}`);
     } finally {
       setLoadingChannels(false);
     }

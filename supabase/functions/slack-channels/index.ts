@@ -93,7 +93,7 @@ Deno.serve(async (req: Request) => {
       }
 
       const channels = (channelsData.channels || []).filter((ch: any) =>
-        !ch.is_archived && (ch.is_member || ch.is_private)
+        !ch.is_archived
       );
 
       return new Response(
